@@ -20,7 +20,9 @@ Public Class HomepageAnderson
         Me.ID = ""
         prodName.Text = ""
         prodQuantity.Text = ""
-        prodUnitPrice.Text = ""
+        prodSellPrice.Text = ""
+        prodBuyPrice.Text = ""
+
 
     End Sub
 
@@ -44,7 +46,8 @@ Public Class HomepageAnderson
 
         Cmd.Parameters.AddWithValue("Product", prodName.Text.Trim().ToUpper())
         Cmd.Parameters.AddWithValue("Quantity", prodQuantity.Text.Trim())
-        Cmd.Parameters.AddWithValue("UnitPrice", prodUnitPrice.Text.Trim())
+        Cmd.Parameters.AddWithValue("BuyPrice", prodBuyPrice.Text.Trim())
+        Cmd.Parameters.AddWithValue("SellPrice", prodSellPrice.Text.Trim())
 
         If str = "Update" And Not String.IsNullOrEmpty(Me.ID) Then
 
@@ -58,7 +61,8 @@ Public Class HomepageAnderson
 
         If String.IsNullOrEmpty(Me.prodName.Text.Trim()) Or
             String.IsNullOrEmpty(Me.prodQuantity.Text.Trim()) Or
-            String.IsNullOrEmpty(Me.prodUnitPrice.Text.Trim()) Then
+            String.IsNullOrEmpty(Me.prodBuyPrice.Text.Trim()) Or
+            String.IsNullOrEmpty(Me.prodSellPrice.Text.Trim()) Then
 
             MessageBox.Show("Please fill in all the missing fields",
                             "Missing fields",
@@ -67,7 +71,7 @@ Public Class HomepageAnderson
 
         End If
 
-        SQL = "INSERT INTO ANDERSON(Product, Quantity, UnitPrice) VALUES(@Product, @Quantity, @UnitPrice)"
+        SQL = "INSERT INTO ANDERSON(Product, Quantity, BuyPrice, SellPrice) VALUES(@Product, @Quantity, @BuyPrice, @SellPrice)"
         Execute(SQL, "Insert")
 
         MessageBox.Show("Product Saved Successfully",
@@ -104,25 +108,32 @@ Public Class HomepageAnderson
             .Columns(0).HeaderText = "ID"
             .Columns(1).HeaderText = "PRODUCT"
             .Columns(2).HeaderText = "QUANTITY"
-            .Columns(3).HeaderText = "UNIT PRICE($)"
-            .Columns(4).HeaderText = "TOTAL PRICE($)"
+            .Columns(3).HeaderText = "BUY PRICE($)"
+            .Columns(4).HeaderText = "SELL PRICE($)"
+            .Columns(5).HeaderText = "TOTAL COST($)"
+            .Columns(6).HeaderText = "TOTAL RETURNS($)"
 
-            .Columns(0).Width = 100
-            .Columns(1).Width = 260
-            .Columns(2).Width = 160
+            .Columns(0).Width = 30
+            .Columns(1).Width = 280
+            .Columns(2).Width = 120
             .Columns(3).Width = 160
-            .Columns(4).Width = 170
+            .Columns(4).Width = 160
+            .Columns(5).Width = 170
+            .Columns(6).Width = 240
 
         End With
 
         'Calculating Quantity and  Total profits
 
-        Dim sumSQL As String = "SELECT SUM(Quantity) AS QuantityTotal, SUM(TotalPrice) AS TotalProfits  FROM ANDERSON"
+        Dim sumSQL As String = "SELECT SUM(Quantity) AS QuantityTotal, SUM(TotalCost) AS TotalCost, SUM(TotalReturns) AS TotalReturns, SUM(TotalReturns)-SUM(TotalCost) AS TotalProfits  FROM ANDERSON"
         Cmd = New OleDbCommand(sumSQL, Con)
         Cmd.Parameters.Clear()
         Dim dtTotal As DataTable = PerformCRUD(Cmd)
         lblTotalProducts.Text = ("Total Products: " & dtTotal.Rows(0)("QuantityTotal").ToString())
-        lblProfit.Text = ("Expected Returns($): " & dtTotal.Rows(0)("TotalProfits").ToString())
+        lblTotalCost.Text = ("Total Cost($): " & dtTotal.Rows(0)("TotalCost").ToString())
+        lblTotalReturns.Text = ("Expected Returns($): " & dtTotal.Rows(0)("TotalReturns").ToString())
+        lblTotalProfit.Text = ("Expected Profit($): " & dtTotal.Rows(0)("TotalProfits").ToString())
+
     End Sub
 
     Private Sub DataGridView1_CellClick(sender As Object, e As DataGridViewCellEventArgs) Handles DataGridView1.CellClick
@@ -138,7 +149,8 @@ Public Class HomepageAnderson
 
             prodName.Text = Convert.ToString(dgv.CurrentRow.Cells(1).Value).Trim()
             prodQuantity.Text = Convert.ToString(dgv.CurrentRow.Cells(2).Value).Trim()
-            prodUnitPrice.Text = Convert.ToString(dgv.CurrentRow.Cells(3).Value).Trim()
+            prodBuyPrice.Text = Convert.ToString(dgv.CurrentRow.Cells(3).Value).Trim()
+            prodSellPrice.Text = Convert.ToString(dgv.CurrentRow.Cells(4).Value).Trim()
 
         End If
 
@@ -161,22 +173,24 @@ Public Class HomepageAnderson
                             "Select Item",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Exclamation)
+            Exit Sub
 
         End If
 
         If String.IsNullOrEmpty(Me.prodName.Text.Trim()) Or
           String.IsNullOrEmpty(Me.prodQuantity.Text.Trim()) Or
-          String.IsNullOrEmpty(Me.prodUnitPrice.Text.Trim()) Then
+          String.IsNullOrEmpty(Me.prodSellPrice.Text.Trim()) Then
 
             MessageBox.Show("Please fill in all the missing fields",
                             "Missing fields",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Exclamation)
+            Exit Sub
 
         End If
 
 
-        SQL = "UPDATE ANDERSON SET Product = @Product, Quantity = @Quantity , UnitPrice = @UnitPrice WHERE ID = @ID"
+        SQL = "UPDATE ANDERSON SET Product = @Product, Quantity = @Quantity , BuyPrice = @BuyPrice, SellPrice = @SellPrice WHERE ID = @ID"
 
 
         Execute(SQL, "Update")
@@ -236,4 +250,5 @@ Public Class HomepageAnderson
 
 
     End Sub
+
 End Class
